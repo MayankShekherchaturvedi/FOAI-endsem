@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { calculateSpeed } from '../utils/haversine';
 
-const ISS_NOW_URL = 'https://api.wheretheiss.at/v1/satellites/25544';
-const ASTROS_URL = 'https://www.howmanypeopleareinspacerightnow.com/peopleinspace.json';
+const ISS_NOW_URL = '/api/iss';
+const ASTROS_URL = '/api/astros';
 const GEOCODE_URL = 'https://nominatim.openstreetmap.org/reverse';
 
 let lastPosition = null;
@@ -11,14 +11,13 @@ let lastTimestamp = null;
 export const fetchISSPosition = async () => {
   try {
     const response = await axios.get(ISS_NOW_URL);
-    // wheretheiss API returns the object directly
-    if (!response.data || !response.data.latitude) {
+    if (response.data.message !== 'success') {
       throw new Error('Failed to fetch ISS position');
     }
 
     const position = {
-      lat: parseFloat(response.data.latitude),
-      lng: parseFloat(response.data.longitude),
+      lat: parseFloat(response.data.iss_position.latitude),
+      lng: parseFloat(response.data.iss_position.longitude),
       timestamp: response.data.timestamp * 1000 // Convert to ms
     };
 
@@ -32,8 +31,8 @@ export const fetchISSPosition = async () => {
         position.timestamp - lastTimestamp
       );
     } else {
-      // Use the provided velocity if available, otherwise approx
-      speed = response.data.velocity ? response.data.velocity : 27580; 
+      // Approximate average speed of ISS if no previous data
+      speed = 27580; 
     }
 
     lastPosition = position;
@@ -49,8 +48,7 @@ export const fetchISSPosition = async () => {
 export const fetchAstros = async () => {
   try {
     const response = await axios.get(ASTROS_URL);
-    // howmanypeopleareinspacerightnow API
-    if (!response.data || typeof response.data.number === 'undefined') {
+    if (response.data.message !== 'success') {
       throw new Error('Failed to fetch astronauts');
     }
     return {

@@ -8,4 +8,18 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  server: {
+    proxy: {
+      '/api/iss': {
+        target: 'http://api.open-notify.org/iss-now.json',
+        changeOrigin: true,
+        rewrite: (path) => ''
+      },
+      '/api/astros': {
+        target: 'http://api.open-notify.org/astros.json',
+        changeOrigin: true,
+        rewrite: (path) => ''
+      }
+    }
+  }
 })
